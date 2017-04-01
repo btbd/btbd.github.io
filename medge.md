@@ -95,7 +95,7 @@ Note: X and Y are on the horizontal axis, and Z is on the vertical axis.
 These are the currently known combinations for the Hand, Movement, Walking, and Action State animation bytes.
 
 | Hand | Movement | Walking | Action | Animation |
-|:-----|----------|---------|--------|-----------|
+|:-----|:---------|:--------|:-------|:----------|
 | 0    | 1        | 0       |        | Standing  |
 | 0    | 1        | 1       |        | Standing  |
 | > 0  | 1        | 0       |        | Hands Against Wall |
@@ -159,6 +159,7 @@ These are the currently known combinations for the Hand, Movement, Walking, and 
 |      | 63       |         |        | Melee Crouch |
 |      | 72       |         |        | Death Fall |
 |      | 91       |         |        | Rolling |
+
 ### Faith's Camera
 
 ## Engine
@@ -173,8 +174,8 @@ int __thiscall LevelStream (LEVEL_INFO *level_info);
 ```
 The full layout of the `LEVEL_INFO` structure is not known, but the only variables needed to manually level stream are:
 
-| Offset (Hex) | Type | Description |
-|:-------------|------|-------------|
+| Offset (Hex) | Type  | Description |
+|:-------------|:------|:------------|
 | 2C           | Byte  | Unload Boolean (0 for load, 1 for unload) |
 | 88           | DWORD | Pointer to array of sublevels
 | F0           | DWORD | Pointer to array of sublevels |
@@ -182,10 +183,10 @@ The full layout of the `LEVEL_INFO` structure is not known, but the only variabl
 
 Sublevel structure:
 
-| Offset (Hex) | Type | Description |
-|:-------------|------|-------------|
+| Offset (Hex) | Type  | Description |
+|:-------------|:------|:------------|
 | 4            | DWORD | Sublevel ID |
-| C           | Byte  | Load Boolean (0 for unload, 1 for load) - Keep consistent with `LEVEL_INFO` unload boolean. |
+| C            | Byte  | Load Boolean (0 for unload, 1 for load) - Keep consistent with `LEVEL_INFO` unload boolean. |
 
 Given these structures and some dummy `LEVEL_INFO` data taken from an actual `LevelStream` call, a manual level streaming function can easily be created:
 
