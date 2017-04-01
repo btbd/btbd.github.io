@@ -226,9 +226,9 @@ Traversing through the sublevel array is quite simple after retrieving the count
 
 ```cpp
 DWORD sublevel_list = FindPattern(EXE.modBaseAddr,
-								  EXE.modBaseSize,
-								  "\x8B\x41\x04\x56\x33\xF6\x39\x71\x08\x89\x71\x10\x8B\x15",
-								  "xxxxxxxxxxxxxx");
+                                  EXE.modBaseSize,
+                                  "\x8B\x41\x04\x56\x33\xF6\x39\x71\x08\x89\x71\x10\x8B\x15",
+                                  "xxxxxxxxxxxxxx");
 sublevel_list = *(DWORD *)(sublevel_list + 0xE);
 
 sublevel_list = GetPointer(sublevel_list, 0x50, 0x3C, 0x00, 0x00);
@@ -253,9 +253,9 @@ In addition, each sublevel has a `wchar` string that corresponds with it. Gettin
 ```cpp
 void GetSublevelStringById(DWORD id, char *out) {
 	DWORD string_table = FindPattern(EXE.modBaseAddr,
-									 EXE.modBaseSize,
-									 "\x33\xC4\x50\x8D\x44\x24\x18\x64\xA3\x00\x00\x00\x00\x8B\xD9\x33\xED\x89\x6C\x24\x14\x8B\x03\x8B\x0D",
-									 "xxxxxxxxxxxxxxxxxxxxxxxxx");
+                                     EXE.modBaseSize,
+                                     "\x33\xC4\x50\x8D\x44\x24\x18\x64\xA3\x00\x00\x00\x00\x8B\xD9\x33\xED\x89\x6C\x24\x14\x8B\x03\x8B\x0D",
+                                     "xxxxxxxxxxxxxxxxxxxxxxxxx");
 									 
 	string_table = *(DWORD *)(string_table + 0x19);
 	
