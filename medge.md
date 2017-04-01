@@ -30,9 +30,9 @@ After retrieving the static offset, the following pointer offsets are applied:
 #### Pseudocode
 ```cpp
 DWORD body_base = FindPattern(EXE.modBaseAddr, // Base
-							  EXE.modBaseSize, // Search length
-							  "\x89\x0D\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xFF", // Bytes
-							  "xx????x????x"); // Mask
+                              EXE.modBaseSize, // Search length
+                              "\x89\x0D\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xFF", // Bytes
+                              "xx????x????x"); // Mask
 							  
 /* The first 2 bytes are the opcode and the r/32 byte, 
  * so the last 4 bytes of the instruction (the static offset) are needed */
