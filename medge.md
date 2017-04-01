@@ -26,8 +26,6 @@ Note: the final `??` byte is excluded because it is not necessary to search for.
 After retrieving the static offset, the following pointer offsets are applied:
 `static_offset, CC, 4A4, 214, 0`
 
-
-#### Pseudocode
 ```cpp
 DWORD body_base = FindPattern(EXE.modBaseAddr, // Base
                               EXE.modBaseSize, // Search length
