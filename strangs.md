@@ -22,7 +22,7 @@ for (;;) {
 }
 ```
 
-The skip in calling the handler caused by a large difference in frame time can be seen in the pseudo-code below:
+The skip in calling the handler caused by a too small difference in frame time can be seen in the pseudo-code below:
 
 ```cpp
 /*** 0x12B0960 ***/
