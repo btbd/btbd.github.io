@@ -49,7 +49,7 @@ simulated function SubtractLandingSpeed() {
     bShouldSubtract = (PawnOwner.OldMovementState == 2 && (FallMove.PreviousMove == 11 || FallMove.PreviousMove == 32)) || PawnOwner.OldMovementState == 61 || PawnOwner.OldMovementState == 32;
     if (bShouldSubtract && PawnOwner.GetWeaponType() != 1) {
         JumpMove = TdMove_Jump(PawnOwner.Moves[11]);
-		// LandingSpeedReduction is 65u/s
+        // LandingSpeedReduction is 65u/s
         if ((JumpMove.PreJumpMomentum - LandingSpeedReduction) < VSize2D(PawnOwner.Velocity)) {
             NewVelocity = PawnOwner.Velocity;
             NewVelocity.Z = 0.0;
@@ -70,8 +70,6 @@ Essentially, the game will subtract speed upon landing if:
 Then the walking handler (`0x12BEF70`) is supposed to be called, but is skipped. 
 
 The walking handler would add 90u/s to Faith's speed (if landing from free fall) and cap it at 720u/s (if the last movement state was free fall or jumping).
-
-(^ walking handler still needs to be reversed a little more)
 
 A frame where the walking handler is skipped would cause:
 - Strang after a wallboost
