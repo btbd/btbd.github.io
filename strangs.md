@@ -2,6 +2,8 @@
 
 All offsets below are for the Steam version.
 
+## Handler Skips
+
 A handler skip is a single frame where the difference in frame time was too small, so the game skips the handler function for Faith's current state.
 
 The game calcuates the difference in frame time as described by the pseudo-code below:
@@ -33,6 +35,8 @@ void __thiscall CallStateHandler(byte *this, float diff, int a3) {
 }
 ```
 
+## Handler Skip for Strangs
+
 For a strang, a handler skip occurs on the frame Faith is walking between two jumps:
 
 - ```(jump) -> (falling) -> (walking, but handler is skipped) -> (jump)```
@@ -62,32 +66,44 @@ simulated function SubtractLandingSpeed() {
 ```
 
 Essentially, the game will subtract speed upon landing if:
-- Faith's last movement state was free fall (2), which will be triggered if her vertical velocity is less than -400u/s, AND her previous move was a standard jump or a kick.
+- Faith's last movement state was free fall (2), which will be triggered if her vertical velocity is less than `-400u/s`, AND her previous move before the free fall was a standard jump or a kick.
 - OR if Faith's previous movement state was a jumping coil.
 - OR if Faith's previous movement state was a kick.
 - AND if Faith's `PreJumpSpeed - 65.0u/s < CurrentSpeed`
 
-Then the walking handler (`0x12BEF70`) is supposed to be called, but is skipped. 
+Then the walking handler (`0x12BEF70`) is supposed to be called, but is skipped. Simply put, the walking handler would have adjusted Faith's speed.
 
-The walking handler would add 90u/s to Faith's speed (if landing from free fall) and cap it at 720u/s (if the last movement state was free fall or jumping).
+### Walking Handler
+
+If Faith's X, Y, and Z acceleration are less than `0.0001u/s^2`, which signifies a smooth continuous jump, the game will adjust Faith's acceleration by the following:
+```c
+/*** 0x12B31AA ***/
+float accel_const = *(float *)(faith_actor_base + 0x274); // 6144 by default
+float mag = vx * vx + vy * vy + vz * vz;
+float speed = sqrt(mag);
+float gain = (3.0 - (((1.0 / speed) * mag) * (1.0 / speed))) * ((1.0 / speed) * 0.5);
+float jerk = velocity * gain;
+acceleration += (jerk * accel_const);
+```
+
+This change in acceleration causes a speed gain. However, if Faith does a non-smooth continuous jump, then she will not gain enough speed to cancel the landing speed reduction. 
+
+The walking handler will finally cap Faith's speed at `720u/s`.
+
+## Conclusion
 
 A frame where the walking handler is skipped would cause:
 - Strang after a wallboost
-	- Faith's last movement state was free fall but her previous move was not a standard jump, it was a wallrun jump.
+	- Faith's last movement state was free fall but her previous move before the free fall was a wallrun jump.
 	- No landing speed subtracted.
 - Strang by jumping on a ledge/platform higher than Faith's initial position
-	- Faith's vertical velocity does not go below -400u/s, so her last movement state is not free fall.
+	- Faith's vertical velocity does not go below `-400u/s`, so her last movement state is not free fall.
+	- No landing speed subtracted.
+- Strang falling from zipline
+	- Faith's last movement state was free fall but her previous move before the free fall was a zipline hang.
 	- No landing speed subtracted.
 - Loss in speed while bunny hopping in a straight line
-	- Since the walking handler was skipped, there is no 90u/s speed gain.
+	- Since the walking handler was skipped, there is no speed gain for the continuous jump.
 	- Landing speed still subtracted.
 	
 Note: Faith's main state, which determines what actions are available (i.e. jumping) and Faith's physics, is still changed even when the movement state is not.
-	
-This also explains:
-- Kickglitches (movement state is 62)
-	- The game sets Faith's main state to grounded and her movement state to walking for one frame.
-	- No landing speed is subtracted. The walking handler does not cap or increase the speed for the state change.
-- Speedvault BHOPs (movement state is 9)
-	- Faith lands in a normal grounded state.
-	- No landing speed is subtracted. The walking handler does not cap or increase the speed for the state change.
