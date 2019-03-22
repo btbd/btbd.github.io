@@ -2,29 +2,35 @@
 
 All offsets below are for the Steam version.
 
-## Handler Skips
+## Handler Skips and Strangs
 
 A handler skip is a single frame where the difference in frame time was too small, so the game skips the handler function for Faith's current state.
 
-The game calcuates the difference in frame time as described by the pseudo-code below:
+The game calculates the difference in frame time as described by the pseudo-code below:
 
 ```cpp
 double seconds_per_tick = 1.0 / QueryPerformanceFrequency; // 0x2020738
 
 double current, // 0x2027FA8
        last,    // 0x1F98618
-       diff;    // 0x1F723E0
+       delta;   // 0x1F723E0
 		   
 for (;;) {
 	/*** 0x404140 ***/
 	current = (double)QueryPerformanceCounterQuadPart * seconds_per_tick + 16777216.0;
-	diff = current - last;
-	Tick(diff);
+	delta = current - last;
+	Tick(delta);
 	last = current;
 }
 ```
 
-The skip in calling the handler caused by a too small difference in frame time can be seen in the pseudo-code below:
+However, this difference in frame time (delta) is manipulated as the game passes it down to the current state handler.
+
+At `0xB5BA00`, the game multiplies delta by the current time dialation (between `0` and `1`) and caps it at `0.4`.
+
+Then for when Faith is landing, the game will calcluate the difference in current position to predicted position, and determine how to scale delta such that Faith doesn't fall below the floor (`0xDBB07D` for prediction -> `0x12C177D` for adjusting delta) because her velocities are scaled by delta.
+
+Then delta is passed to this function, and the skip in calling the handler caused by a too small delta can be seen in the pseudo-code below:
 
 ```cpp
 /*** 0x12B0960 ***/
@@ -34,8 +40,6 @@ void __thiscall CallStateHandler(byte *this, float diff, int a3) {
 	}
 }
 ```
-
-## Handler Skip for Strangs
 
 For a strang, a handler skip occurs on the frame Faith is walking between two jumps:
 
@@ -75,7 +79,7 @@ Then the walking handler (`0x12BEF70`) is supposed to be called, but is skipped.
 
 ### Walking Handler
 
-If Faith's X, Y, and Z acceleration are less than `0.0001u/s^2`, which signifies a smooth continuous jump, the game will adjust Faith's acceleration by the following:
+If Faith's X, Y, and Z acceleration are less than `0.0001u/s^2`, which signifies a smooth continuous jump, the game will adjust Faith's velocity by the following:
 ```c
 /*** 0x12B31AA ***/
 float accel_const = *(float *)(faith_actor_base + 0x274); // 6144 by default
@@ -84,6 +88,8 @@ float speed = sqrt(mag);
 float gain = (3.0 - (((1.0 / speed) * mag) * (1.0 / speed))) * ((1.0 / speed) * 0.5);
 float jerk = velocity * gain;
 acceleration += (jerk * accel_const);
+
+velocity += (acceleration * delta);
 ```
 
 This change in acceleration causes a speed gain. However, if Faith does a non-smooth continuous jump, then she will not gain enough speed to cancel the landing speed reduction. 
